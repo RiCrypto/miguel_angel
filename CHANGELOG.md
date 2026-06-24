@@ -50,3 +50,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs/guides/security.md — TOTP + FIDO2 + profile setup guide
 - docs/adr/ADR-001-tech-stack.md — Director-approved stack decision
 - CHANGELOG.md (this file)
+
+### Added — Phase 2 (Core Engine — DB Specialist, reviewed & approved)
+- `miguel_angel/db/library_models.py` — SQLAlchemy 2.0 ORM component library schema
+  - 9 tables: standards · categories · symbols · symbol_pins · symbol_keywords
+  - symbol_aliases · line_types · manufacturers · manufacturer_parts
+  - WAL journal mode · foreign key enforcement · composite unique constraints
+- `miguel_angel/db/library_db.py` — library database engine
+  - 40 seed symbols across all 7 standards (ISA 5.1/5.2/5.4/5.4/95, IEC 60617, ANSI/NEMA, IEEE 315)
+  - 11 line type definitions (6 ISA 5.1 signal lines, 5 IEC 60617 power lines)
+  - Full-text search across name, ISA tag, keywords, aliases
+  - Idempotent seed, eager loading, stats by standard
+- `miguel_angel/db/migrations/0001_initial_schema.py` — Alembic migration
+- `tests/test_library_db.py` — 43 tests, all passing
+- `docs/adr/ADR-003-db-review.md` — DB Specialist code review (Agent Scientist Computer)
+
+### Changed
+- `CHANGELOG.md` updated with Phase 2 DB deliverables
+- `README.md` v3 — updated with DB architecture, symbol counts, full project status
