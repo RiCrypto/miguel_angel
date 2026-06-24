@@ -1,0 +1,37 @@
+name: ForumBot — auto-respond to discussions
+
+on:
+  discussion:
+    types: [created]
+
+jobs:
+  forumbot-respond:
+    name: ForumBot response
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ForumBot dependencies
+        run: |
+          pip install PyGithub langchain chromadb httpx
+
+      - name: Run ForumBot response engine
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCUSSION_ID: ${{ github.event.discussion.node_id }}
+          DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          DISCUSSION_TITLE: ${{ github.event.discussion.title }}
+          DISCUSSION_BODY: ${{ github.event.discussion.body }}
+          DISCUSSION_CATEGORY: ${{ github.event.discussion.category.name }}
+          REPO_NAME: ${{ github.repository }}
+          FORUMBOT_LLM_API_KEY: ${{ secrets.FORUMBOT_LLM_API_KEY }}
+        run: python .github/scripts/forumbot_respond.py

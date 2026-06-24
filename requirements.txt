@@ -1,0 +1,54 @@
+# miguel_angel — full dependency list
+# Install: pip install -r requirements.txt
+
+# ── GUI ───────────────────────────────────────────────────────────────────────
+PyQt6>=6.6.0
+PyQt6-Qt6>=6.6.0
+
+# ── Schematic engine ─────────────────────────────────────────────────────────
+networkx>=3.2.1          # Netlist graph model
+shapely>=2.0.2           # Geometry: hit-testing, collision detection
+svgwrite>=1.4.3          # SVG symbol rendering
+pint>=0.23               # Unit-aware quantities (V, A, Ω)
+pydantic>=2.5.0          # Schema validation and serialization
+
+# ── File format ──────────────────────────────────────────────────────────────
+msgpack>=1.0.7           # Binary serialization for large .maproj files
+
+# ── Database ─────────────────────────────────────────────────────────────────
+SQLAlchemy>=2.0.23       # ORM for component library
+alembic>=1.13.0          # DB migrations
+
+# ── Export ───────────────────────────────────────────────────────────────────
+ezdxf>=1.1.4             # DXF export (AutoCAD, SolidWorks Electrical compatible)
+reportlab>=4.0.8         # PDF generation
+cairosvg>=2.7.1          # SVG → PDF/PNG conversion
+
+# ── Security — auth module ───────────────────────────────────────────────────
+argon2-cffi>=23.1.0      # Argon2id password hashing (memory-hard)
+cryptography>=42.0.0     # AES-256 encryption + PBKDF2 key derivation
+pyotp>=2.9.0             # TOTP — Validation 1 (RFC 6238, offline)
+qrcode[pil]>=7.4.2       # QR code for TOTP authenticator setup
+fido2>=1.1.2             # FIDO2/WebAuthn — Validation 2 (YubiKey)
+email-validator>=2.1.0   # RFC 5322 email validation
+zxcvbn>=4.4.28           # Password strength scoring
+
+# ── AI assistant — MiguelBot ─────────────────────────────────────────────────
+langchain>=0.1.0         # LLM chaining and RAG orchestration
+langchain-community>=0.0.10
+chromadb>=0.4.22         # Local vector database
+ollama>=0.1.6            # Local LLM runtime (Llama 3, nomic-embed-text)
+httpx>=0.26.0            # Cloud LLM API fallback (OpenAI-compatible)
+
+# ── GitHub forum integration — ForumBot ──────────────────────────────────────
+PyGithub>=2.1.1          # GitHub API: post replies, labels, discussions
+mistune>=3.0.2           # Markdown parser for docs ingestion
+schedule>=1.2.1          # Nightly sync scheduler
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+pytest>=8.0.0
+pytest-qt>=4.4.0         # PyQt6 widget testing
+
+# ── Code quality ─────────────────────────────────────────────────────────────
+mypy>=1.8.0              # Static type checking
+ruff>=0.2.0              # Linter + formatter (replaces flake8 + black)
