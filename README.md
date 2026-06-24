@@ -157,24 +157,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) and follow the [Code of Conduct](
 - ⚡ **ERC help** — electrical rules check questions
 - 📦 **Component library** — missing or incorrect symbols
 
----
 
-## Project team — agent structure
-
-This project is developed using a structured 10-agent team:
-
-| # | Agent | Responsibility |
-|---|-------|----------------|
-| 10 | Director (Ricardo Almeida) | Final approval, change authority |
-| 1 | Agent Scientist Computer | Technical lead, architecture, coordination |
-| 7 | Project Manager | Roadmap, delegation, sprint management |
-| 3 | Backend Developer | Core engine, data model, file I/O, security |
-| 4 | Frontend Developer | PyQt6 UI, canvas editor, MiguelBot panel |
-| 5 | Database Specialist | SQLite schemas, component library, migrations |
-| 2 | Data Scientist | RAG pipeline, auto-router, BOM intelligence |
-| 6 | Cloud Specialist | CI/CD, GitHub Actions, ForumBot, packaging |
-| 8 | Marketing Specialist | Community, positioning, open-source outreach |
-| 9 | Documentation Specialist | User guide, API reference, ADRs |
 
 ---
 
