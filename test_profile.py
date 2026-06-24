@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from auth.profile import (
+from miguel_angel.auth.profile import (
     UserProfile, TOTPEngine, CryptoEngine,
     ProfileValidator, BACKUP_CODE_COUNT
 )

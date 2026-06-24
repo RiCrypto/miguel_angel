@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "miguel_angel"
+version = "0.1.0-dev"
+description = "Open-source desktop application for electrical and electronic schematics"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Ricardo Almeida", email = "ricrypto@github.com"}]
+requires-python = ">=3.11"
+keywords = ["electrical", "schematics", "ISA", "IEC", "EDA", "CAD"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+dependencies = [
+    "PyQt6>=6.6.0",
+    "pydantic>=2.5.0",
+    "networkx>=3.2.1",
+    "shapely>=2.0.2",
+    "SQLAlchemy>=2.0.23",
+    "argon2-cffi>=23.1.0",
+    "cryptography>=42.0.0",
+    "pyotp>=2.9.0",
+    "qrcode[pil]>=7.4.2",
+    "email-validator>=2.1.0",
+    "zxcvbn>=4.4.28",
+]
+
+[project.optional-dependencies]
+ai = ["langchain>=0.1.0", "chromadb>=0.4.22", "ollama>=0.1.6"]
+export = ["ezdxf>=1.1.4", "reportlab>=4.0.8", "cairosvg>=2.7.1"]
+fido2 = ["fido2>=1.1.2"]
+dev = ["pytest>=8.0.0", "pytest-qt>=4.4.0", "mypy>=1.8.0", "ruff>=0.2.0"]
+
+[project.urls]
+Repository = "https://github.com/RiCrypto/miguel_angel"
+Issues = "https://github.com/RiCrypto/miguel_angel/discussions"
+Documentation = "https://github.com/RiCrypto/miguel_angel/tree/main/docs"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+strict = false
