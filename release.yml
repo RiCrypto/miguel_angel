@@ -1,0 +1,321 @@
+name: Release — Cross-Platform Builds
+
+# Triggers on version tags: v0.1.0, v1.0.0, v1.2.3-beta1, etc.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version string (e.g. 0.1.0)"
+        required: true
+        default: "0.1.0"
+
+# Only one release runs at a time; cancel old runs on new tag
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  APP_NAME: "miguel_angel"
+
+jobs:
+  # ── Extract version ─────────────────────────────────────────────────────────
+  prepare:
+    name: "Prepare version"
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            # Strip leading 'v' from tag: v1.2.3 → 1.2.3
+            TAG="${GITHUB_REF#refs/tags/v}"
+            echo "version=${TAG}" >> $GITHUB_OUTPUT
+          fi
+
+  # ── Windows .exe ────────────────────────────────────────────────────────────
+  build-windows:
+    name: "Build Windows .exe"
+    needs: prepare
+    runs-on: windows-latest
+    env:
+      MA_VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-auth.txt
+          pip install pyinstaller==6.10.0
+
+      - name: Run tests (smoke)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pip install pytest
+          python -m pytest tests/test_core.py tests/test_export.py -q --tb=short
+
+      - name: Build Windows executable
+        shell: cmd
+        run: |
+          set MA_VERSION=${{ env.MA_VERSION }}
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+
+      - name: Verify executable exists
+        shell: powershell
+        run: |
+          $exe = "dist\miguel_angel\miguel_angel.exe"
+          if (-not (Test-Path $exe)) { throw "Executable not found: $exe" }
+          Write-Host "Executable size: $((Get-Item $exe).Length / 1MB) MB"
+
+      - name: Create Windows ZIP
+        shell: powershell
+        run: |
+          $version = "${{ env.MA_VERSION }}"
+          Compress-Archive `
+            -Path "dist\miguel_angel\*" `
+            -DestinationPath "dist\miguel_angel_${version}_windows_x64.zip"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist/miguel_angel_${{ env.MA_VERSION }}_windows_x64.zip
+          retention-days: 7
+
+  # ── macOS .app ─────────────────────────────────────────────────────────────
+  build-macos:
+    name: "Build macOS .app"
+    needs: prepare
+    runs-on: macos-latest
+    env:
+      MA_VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-auth.txt
+          pip install pyinstaller==6.10.0
+
+      - name: Run tests (smoke)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pip install pytest
+          python -m pytest tests/test_core.py tests/test_export.py -q --tb=short
+
+      - name: Build macOS .app bundle
+        env:
+          MA_VERSION: ${{ env.MA_VERSION }}
+        run: |
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+
+      - name: Verify .app bundle
+        run: |
+          APP="dist/miguel_angel.app"
+          if [ ! -d "$APP" ]; then
+            echo "ERROR: .app bundle not found at $APP"
+            exit 1
+          fi
+          echo "Bundle size: $(du -sh $APP | awk '{print $1}')"
+
+      - name: Sign .app (if credentials available)
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID:               ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD:     ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID:          ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          bash packaging/scripts/notarise_mac.sh "${{ env.MA_VERSION }}"
+        continue-on-error: true   # unsigned builds still proceed
+
+      - name: Create macOS DMG
+        run: |
+          VERSION="${{ env.MA_VERSION }}"
+          hdiutil create \
+            -volname "miguel_angel ${VERSION}" \
+            -srcfolder "dist/miguel_angel.app" \
+            -ov -format UDZO \
+            "dist/miguel_angel_${VERSION}_macos.dmg"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: dist/miguel_angel_${{ env.MA_VERSION }}_macos.dmg
+          retention-days: 7
+
+  # ── Linux .deb ─────────────────────────────────────────────────────────────
+  build-linux:
+    name: "Build Linux .deb"
+    needs: prepare
+    runs-on: ubuntu-22.04
+    env:
+      MA_VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: System dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            libxcb-cursor0 libxcb-xinerama0 libxcb-icccm4 \
+            libxcb-keysyms1 libxkbcommon-x11-0 \
+            libgl1-mesa-glx libegl1 \
+            dpkg-dev fakeroot
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-auth.txt
+          pip install pyinstaller==6.10.0
+
+      - name: Run tests (smoke)
+        env:
+          QT_QPA_PLATFORM: offscreen
+          DISPLAY: ":99"
+        run: |
+          pip install pytest
+          python -m pytest tests/test_core.py tests/test_export.py tests/test_miguelbot.py \
+            -q --tb=short
+
+      - name: Build Linux binary
+        env:
+          MA_VERSION: ${{ env.MA_VERSION }}
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+
+      - name: Verify Linux binary
+        run: |
+          BIN="dist/miguel_angel/miguel_angel"
+          [ -f "$BIN" ] || (echo "Binary not found: $BIN" && exit 1)
+          file "$BIN"
+          echo "Binary size: $(du -sh $BIN | awk '{print $1}')"
+
+      - name: Build .deb package
+        run: |
+          bash packaging/scripts/build_deb.sh "${{ env.MA_VERSION }}"
+
+      - name: Verify .deb
+        run: |
+          DEB="dist/miguel-angel_${{ env.MA_VERSION }}_amd64.deb"
+          [ -f "$DEB" ] || (echo ".deb not found: $DEB" && exit 1)
+          dpkg-deb --info "$DEB"
+          echo ".deb size: $(du -sh $DEB | awk '{print $1}')"
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: dist/miguel-angel_${{ env.MA_VERSION }}_amd64.deb
+          retention-days: 7
+
+  # ── GitHub Release ──────────────────────────────────────────────────────────
+  publish-release:
+    name: "Publish GitHub Release"
+    needs: [prepare, build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: List release artifacts
+        run: find release-artifacts -type f | sort
+
+      - name: Read CHANGELOG excerpt
+        id: changelog
+        run: |
+          # Extract the most recent "Unreleased" or version section from CHANGELOG
+          NOTES=$(awk '/^## \[Unreleased\]/{found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md | head -40)
+          if [ -z "$NOTES" ]; then
+            NOTES="See CHANGELOG.md for full release notes."
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "miguel_angel v${{ needs.prepare.outputs.version }}"
+          draft: false
+          prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
+          body: |
+            ## miguel_angel v${{ needs.prepare.outputs.version }}
+
+            Open-source electrical and electronic schematic editor.
+
+            ### Downloads
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows 10/11 | `miguel_angel_*_windows_x64.zip` | Unzip and run `miguel_angel.exe` |
+            | macOS 12+ | `miguel_angel_*_macos.dmg` | Open DMG and drag to Applications |
+            | Ubuntu 22.04+ | `miguel-angel_*_amd64.deb` | `sudo dpkg -i miguel-angel_*.deb` |
+
+            ### Requirements (not bundled)
+
+            - **Ollama** (optional) — for MiguelBot AI assistant: https://ollama.ai
+              - After installing: `ollama pull llama3 && ollama pull nomic-embed-text`
+
+            ${{ steps.changelog.outputs.notes }}
+
+            ### Checksums
+
+            SHA256 checksums will be added after artifact verification.
+
+            ---
+            Full changelog: https://github.com/RiCrypto/miguel_angel/blob/main/CHANGELOG.md
+          files: |
+            release-artifacts/windows-build/*.zip
+            release-artifacts/macos-build/*.dmg
+            release-artifacts/linux-build/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
