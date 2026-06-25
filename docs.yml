@@ -1,0 +1,57 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages:    write
+  id-token: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy MkDocs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # needed for mike version history
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install MkDocs + Material
+        run: |
+          pip install \
+            mkdocs==1.6.1 \
+            mkdocs-material \
+            mkdocstrings \
+            mkdocstrings-python
+
+      - name: Install project (for mkdocstrings API docs)
+        run: |
+          pip install -r requirements.txt || true
+          pip install -e . --no-deps || true
+
+      - name: Build MkDocs site
+        run: mkdocs build --verbose
+
+      - name: Deploy to GitHub Pages
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdocs gh-deploy --force --clean --verbose

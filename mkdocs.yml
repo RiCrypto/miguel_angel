@@ -1,0 +1,139 @@
+site_name: miguel_angel Documentation
+site_description: Open-source electrical and electronic schematic editor — ISA · IEC · ANSI · IEEE
+site_author: Ricardo Almeida (RiCrypto)
+site_url: https://ricrypto.github.io/miguel_angel/
+repo_url: https://github.com/RiCrypto/miguel_angel
+repo_name: RiCrypto/miguel_angel
+edit_uri: edit/main/docs/
+copyright: "© 2025 Ricardo Almeida — MIT License"
+
+# ── Theme ─────────────────────────────────────────────────────────────────────
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - toc.integrate
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+# ── Plugins ───────────────────────────────────────────────────────────────────
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+            show_submodules: false
+
+# ── Markdown extensions ───────────────────────────────────────────────────────
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+# ── Navigation ────────────────────────────────────────────────────────────────
+nav:
+  - Home: index.md
+  - Getting started:
+    - Installation: guides/installation.md
+    - Quick start: guides/quickstart.md
+    - First schematic: guides/first-schematic.md
+    - Security setup: guides/security.md
+  - User guide:
+    - The canvas: guides/canvas.md
+    - Standards and symbols: guides/standards.md
+    - Wires and nets: guides/wires-nets.md
+    - MiguelBot AI: guides/miguelbot.md
+    - Exporting schematics: guides/export.md
+    - Keyboard shortcuts: guides/shortcuts.md
+  - API reference:
+    - Overview: api/index.md
+    - core: api/core.md
+    - db: api/db.md
+    - miguelbot: api/miguelbot.md
+    - export: api/export.md
+    - auth: api/auth.md
+    - ui: api/ui.md
+  - Architecture decisions:
+    - Overview: adr/index.md
+    - ADR-001 — Tech stack: adr/ADR-001-tech-stack.md
+    - ADR-002 — Backend review: adr/ADR-002-backend-review.md
+    - ADR-003 — DB review: adr/ADR-003-db-review.md
+    - ADR-004 — Frontend review: adr/ADR-004-frontend-review.md
+    - ADR-005 — RAG review: adr/ADR-005-rag-review.md
+    - ADR-006 — Export review: adr/ADR-006-export-review.md
+    - ADR-007 — Symbol wiring review: adr/ADR-007-symbol-miguelbot-review.md
+    - ADR-008 — Packaging review: adr/ADR-008-packaging-review.md
+  - Contributing: contributing.md
+
+# ── Extra ─────────────────────────────────────────────────────────────────────
+extra:
+  version:
+    provider: mike
+    default: stable
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RiCrypto/miguel_angel
+      name: GitHub
+  analytics:
+    provider: google
+    property: ""   # add GA4 measurement ID for production
