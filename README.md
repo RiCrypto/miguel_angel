@@ -9,8 +9,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-7F77DD.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org)
 [![PyQt6](https://img.shields.io/badge/GUI-PyQt6-1D9E75.svg)](https://www.riverbankcomputing.com/software/pyqt/)
-[![Tests](https://img.shields.io/badge/Tests-122%20passing-27500A.svg)](tests/)
-[![Phase](https://img.shields.io/badge/Phase-2%20of%205%20%E2%80%94%2062%25-EF9F27.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-203%20passing-27500A.svg)](tests/)
+[![Progress](https://img.shields.io/badge/Progress-80%25-7F77DD.svg)]()
+[![Phase](https://img.shields.io/badge/Phase-3%20of%205-EF9F27.svg)]()
 [![GitHub](https://img.shields.io/badge/GitHub-RiCrypto%2Fmiguel__angel-181825.svg)](https://github.com/RiCrypto/miguel_angel)
 
 </div>
@@ -21,7 +22,34 @@
 
 **miguel\_angel** is a cross-platform, open-source schematic editor for electrical and electronic engineering. It supports the full range of international instrumentation and electrical standards — giving engineers a free, professional-grade alternative to tools that cost thousands of dollars per seat.
 
-> **Current status:** Phase 2 of 5 — 62% complete. Core engine fully implemented and reviewed. UI and canvas editor are next.
+> **Current status:** Phase 3 of 5 — 80% complete. Core engine, component library, main window, and AI assistant are all implemented and code-reviewed. Export engine and canvas symbol placement are next.
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/RiCrypto/miguel_angel.git
+cd miguel_angel
+
+conda create -n miguel_angel python=3.11
+conda activate miguel_angel
+pip install -r requirements.txt -r requirements-auth.txt
+
+# Launch
+python -m miguel_angel
+
+# Run tests (203 passing)
+pytest tests/ -v
+```
+
+**CLI options:**
+```bash
+python -m miguel_angel                    # standard launch
+python -m miguel_angel --no-auth          # skip login (dev mode)
+python -m miguel_angel --debug            # verbose logging
+python -m miguel_angel project.maproj     # open file on start
+```
 
 ---
 
@@ -29,16 +57,16 @@
 
 | Standard | Scope | Symbols |
 |----------|-------|:-------:|
-| **ISA 5.1** | Instrumentation symbols & identification — indicators, controllers, transmitters, valves, switches | 12 |
+| **ISA 5.1** | Instrumentation symbols — indicators, controllers, transmitters, valves, switches | 12 |
 | **ISA 5.2** | Binary logic diagrams — AND/OR/NOT gates, timers, interlocks | 4 |
 | **ISA 5.4** | Instrument loop diagrams — I/P converters, positioners, annunciators | 3 |
 | **ISA 95** | Enterprise-control integration — PLC, HMI, DCS, SCADA (levels 0–4) | 3 |
 | **IEC 60617** | Graphical symbols — contactors, motors, breakers, transformers, terminals | 6 |
 | **ANSI / NEMA** | North American electrical — push buttons, relays, fuses | 5 |
 | **IEEE 315** | Electronic symbols — R, C, L, diodes, transistors, op-amps, logic gates | 7 |
-| **Custom** | User-defined symbols — SVG import, symbol editor, team-shareable | ∞ |
+| **Custom** | User-defined — SVG import, symbol editor, team-shareable | ∞ |
 
-**40 production-ready symbols · 11 line types (6 ISA 5.1 signal + 5 IEC 60617 power)**
+**40 symbols · 11 line types (6 ISA 5.1 signal + 5 IEC 60617 power)**
 
 ---
 
@@ -46,65 +74,173 @@
 
 ```
 miguel_angel/
-├── auth/                    ← Security module ✅ COMPLETE
+│
+├── auth/                        ✅ COMPLETE — Phase 2 · ADR-002
 │   └── profile.py               Argon2id · AES-256 · TOTP · FIDO2
-│                                34 tests passing
+│                                34 tests
 │
-├── core/                    ← Schematic engine ✅ COMPLETE
-│   ├── models.py                Pydantic v2 data model
-│   │                            Project → Sheet → Component → Pin
-│   │                            WireSegment · Net · NetLabel · LibrarySymbol
-│   ├── netlist.py               NetworkX connectivity graph
-│   │                            Spatial pin matching · Net labels · ERC rules
-│   └── fileio.py                .maproj JSON save/load
-│                                Msgpack sidecar · .bak backup
-│                                45 tests passing
+├── core/                        ✅ COMPLETE — Phase 2 · ADR-002
+│   ├── models.py                Pydantic v2 — Project/Sheet/Component/Pin/Wire/Net
+│   ├── netlist.py               NetworkX — spatial matching · ERC · KiCad export
+│   └── fileio.py                .maproj JSON · msgpack sidecar · .bak backup
+│                                45 tests
 │
-├── db/                      ← Component library ✅ COMPLETE
+├── db/                          ✅ COMPLETE — Phase 2 · ADR-003
 │   ├── library_models.py        SQLAlchemy 2.0 ORM — 9 tables
-│   │                            standards · categories · symbols · pins
-│   │                            keywords · aliases · line_types · manufacturers
-│   ├── library_db.py            Library engine + 40 seed symbols + search
+│   ├── library_db.py            40 symbols · 11 line types · full-text search
 │   └── migrations/
 │       └── 0001_initial_schema.py   Alembic migration
-│                                43 tests passing
+│                                43 tests
 │
-├── ui/                      ← PyQt6 editor — Phase 3 (pending)
-│   ├── mainwindow.py            Main window · 8-menu bar · toolbar
-│   ├── canvas.py                QGraphicsScene infinite canvas
-│   ├── wire_tool.py             Click-to-route wire drawing
-│   └── miguelbot_panel.py       AI assistant dock (F1)
+├── ui/                          ✅ COMPLETE — Phase 3 · ADR-004
+│   ├── constants.py             Theme (21 tokens) · stylesheet · app metadata
+│   ├── menubar.py               8 menus · 7 standard libraries · 11 line types
+│   ├── toolbar.py               9-tool vertical palette · exclusive group
+│   ├── canvas.py                QGraphicsView · zoom 5–2000% · wire routing · ERC signals
+│   ├── panels.py                4 dock panels — navigator · library · properties · MiguelBot
+│   └── mainwindow.py            Orchestrator · QSettings · unsaved-changes guard
+│                                29 tests (headless)
 │
-├── miguelbot/               ← AI assistant RAG — Phase 3 (pending)
-│   ├── rag.py                   LangChain + ChromaDB + Ollama
-│   └── context.py               Live schematic state reader
+├── miguelbot/                   ✅ COMPLETE — Phase 3 · ADR-005
+│   ├── store.py                 ChromaDB — 4 collections (docs/components/forum/erc_rules)
+│   ├── embeddings.py            Ollama nomic-embed-text → sentence-transformers → TF-IDF
+│   ├── ingest.py                Docs · component library · forum · ERC rules
+│   ├── rag.py                   RRF retrieval · prompt builder · Ollama/cloud/fallback LLM
+│   └── service.py               MiguelBotService public API
+│                                52 tests
 │
-└── export/                  ← Export engines — Phase 4 (pending)
-    ├── dxf.py                   AutoCAD / SolidWorks Electrical (ezdxf)
-    ├── pdf.py                   PDF print sheets (reportlab)
-    ├── svg.py                   Vector export (svgwrite)
-    └── kicad.py                 PCB handoff netlist
+├── __main__.py                  ✅ Entry point — python -m miguel_angel
+│
+└── export/                      🔄 Phase 4 — Backend Developer (pending)
+    ├── dxf.py                   ezdxf — AutoCAD / SolidWorks Electrical
+    ├── pdf.py                   reportlab — print sheets
+    ├── svg.py                   svgwrite — vector export
+    └── kicad.py                 KiCad netlist — PCB handoff
 ```
+
+---
+
+## What's been built
+
+### ✅ Security — `miguel_angel/auth/`
+
+Full dual-factor local authentication. Nothing is ever sent off-device.
+
+| Feature | Implementation |
+|---------|---------------|
+| Password hashing | Argon2id — 64 MB memory-hard, GPU-resistant |
+| Storage | AES-256 (Fernet) · PBKDF2-HMAC-SHA256 (480k iterations) · timezone-aware timestamps |
+| Validation 1 | TOTP RFC 6238 — any authenticator app, works offline |
+| Validation 2 | FIDO2 (YubiKey) · Windows Hello · email OTP fallback |
+| Recovery | 10 single-use SHA-256 backup codes |
+| Lockout | 3 attempts → 15 min · recovery email OTP |
+
+### ✅ Schematic engine — `miguel_angel/core/`
+
+```python
+from miguel_angel.core import Project, Sheet, Component, NetlistEngine, MAprojIO, Point, Standard
+
+# Create, edit and save a schematic
+project = MAprojIO.new_project("Motor Starter", author="R. Almeida")
+tic = Component(symbol_id="ISA51:TIC", reference="TIC-101",
+                position=Point(x=10, y=5), standard=Standard.ISA_5_1)
+project.sheets[0].components.append(tic)
+MAprojIO().save(project, Path("motor_starter.maproj"))
+
+# Build netlist and run ERC
+engine = NetlistEngine()
+engine.build(project)
+violations = engine.run_erc()              # [ERC-001 unconnected pin, ...]
+netlist    = engine.to_netlist_dict()      # KiCad-compatible export dict
+```
+
+ERC rules: `ERC-001` unconnected pin · `ERC-002` dead-end wire · `ERC-003` power short · `ERC-004` output conflict.
+
+### ✅ Component library — `miguel_angel/db/`
+
+```python
+from miguel_angel.db import LibraryDB
+
+db = LibraryDB()
+db.connect()
+
+db.search("temperature controller")            # full-text: name + tag + keywords + aliases
+db.get_symbol("ISA51:TIC")                     # eager-loaded with pins, keywords, aliases
+db.get_symbols_by_standard("IEC 60617")
+db.get_line_types("ISA 5.1")                   # 6 signal line types
+db.stats()   # → {"ISA 5.1": 12, "IEC 60617": 6, "IEEE 315": 7, ...}
+```
+
+### ✅ Main window — `miguel_angel/ui/`
+
+- **8-menu bar**: File · Edit · Workspace · Component library · Line types · View · Tools · Help
+- **9-tool vertical toolbar**: Select · Pan · Wire · Junction · Symbol · Power · Ground · Label · Text
+- **Infinite canvas**: QGraphicsView · zoom 5–2000% · orthogonal wire routing · dot-grid snap
+- **4 dock panels**: Project navigator · Component library browser · Properties · MiguelBot AI
+- **Status bar**: active tool · cursor coordinates · zoom % · ERC status · filename
+- **QSettings**: window geometry and dock layout persist across restarts
+
+### ✅ MiguelBot AI assistant — `miguel_angel/miguelbot/`
+
+Context-aware AI assistant embedded as a dockable panel (`F1`).
+
+```python
+from miguel_angel.miguelbot import MiguelBotService, EmbeddingBackend
+from pathlib import Path
+
+bot = MiguelBotService(
+    docs_path    = Path("docs/"),
+    library_db   = db,                          # LibraryDB instance
+    ollama_model = "llama3",                    # offline, no API key
+)
+bot.start()   # connect + ingest (idempotent)
+
+answer = bot.ask(
+    "How do I wire a motor starter circuit?",
+    schematic_context = canvas.get_context_snapshot(),
+)
+print(answer.answer)          # LLM-generated answer grounded in docs
+print(answer.confidence)      # 0.0 – 1.0 (based on vector similarity)
+print(answer.should_escalate) # True → auto-post to GitHub Discussions
+
+bot.explain_erc("ERC-001", "Pin K1.PE is unconnected")
+bot.suggest_component("measure temperature in a process pipe")
+bot.stop()
+```
+
+**RAG pipeline:**
+1. Embed question with `nomic-embed-text` (Ollama, 768-dim) or fallback
+2. Parallel search across `docs`, `components`, `erc_rules`, `forum`
+3. Reciprocal Rank Fusion (RRF) — re-ranks 20 candidates to top-5
+4. Inject schematic context (selected components, active nets, ERC errors)
+5. Generate answer via Ollama Llama 3 → cloud API → deterministic fallback
+6. If confidence < 0.72 → `should_escalate=True` → MiguelBot panel auto-posts to GitHub Discussions
+
+**Embedding backends** (auto-detected at startup):
+- `nomic-embed-text` via Ollama — 768-dim, CPU-only, no GPU, offline
+- `all-MiniLM-L6-v2` via sentence-transformers — 384-dim, pip-installable
+- TF-IDF bag-of-words — 128-dim, always available (used in CI)
 
 ---
 
 ## Tech stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Language | Python 3.11+ | Primary language — Anaconda-native |
-| GUI | PyQt6 + QGraphicsScene | Desktop UI + infinite canvas |
-| Data model | Pydantic v2 | Schema validation + JSON serialisation |
-| File format | `.maproj` (JSON) | Human-readable, git-diffable project files |
-| Netlist | networkx | Graph model: components = nodes, wires = edges |
-| Component DB | SQLite 3 + SQLAlchemy 2.0 | Embedded library, no server needed |
-| Geometry | shapely | Hit-testing, selection, collision on canvas |
-| AI assistant | LangChain + ChromaDB + Ollama | Offline RAG, no API key required |
-| Export | ezdxf · reportlab · svgwrite | DXF, PDF, SVG output |
-| Security | argon2-cffi · cryptography · pyotp · fido2 | Dual-factor local auth |
-| Migrations | Alembic | DB schema versioning |
-| CI/CD | GitHub Actions | Cross-platform test matrix |
-| Packaging | PyInstaller | .exe · .app · .deb single-file bundles |
+| Layer | Technology | Status |
+|-------|-----------|--------|
+| Language | Python 3.11+ | ✅ |
+| GUI | PyQt6 + QGraphicsScene | ✅ |
+| Data model | Pydantic v2 | ✅ |
+| File format | `.maproj` JSON | ✅ |
+| Netlist | networkx | ✅ |
+| Component DB | SQLite + SQLAlchemy 2.0 | ✅ |
+| Security | argon2-cffi · cryptography · pyotp · fido2 | ✅ |
+| Migrations | Alembic | ✅ |
+| AI vector store | ChromaDB (persistent, 4 collections) | ✅ |
+| AI embeddings | Ollama nomic-embed-text / sentence-transformers / TF-IDF | ✅ |
+| AI generation | Ollama Llama 3 / OpenAI-compatible / fallback | ✅ |
+| Export | ezdxf · reportlab · svgwrite | 🔄 Phase 4 |
+| CI/CD | GitHub Actions | ✅ |
+| Packaging | PyInstaller | 🔄 Phase 4 |
 
 ---
 
@@ -113,235 +249,52 @@ miguel_angel/
 | Phase | Description | Status | Progress |
 |-------|-------------|--------|:--------:|
 | **1** | Requirements & architecture | ✅ Complete | 100% |
-| **2** | Core engine development | ✅ Complete | 95% |
-| **3** | UI & schematic editor | 🔄 Designed | 40% |
-| **4** | Data, export & integration | 🔄 Designed | 30% |
-| **5** | Release & documentation | 📝 In progress | 20% |
+| **2** | Core engine | ✅ Complete | 95% |
+| **3** | UI & AI assistant | ✅ Complete | 90% |
+| **4** | Export & integration | 🔄 Designed | 30% |
+| **5** | Release & documentation | 📝 In progress | 22% |
 
-**Overall: 62% complete · 122 tests passing · 4,242 lines of production code**
-
----
-
-## What's been built
-
-### ✅ Security module — `miguel_angel/auth/`
-
-Full dual-factor local authentication. Nothing is ever sent off-device.
-
-| Feature | Implementation |
-|---------|---------------|
-| Password hashing | Argon2id — 64 MB memory-hard, GPU-resistant |
-| Storage encryption | AES-256 (Fernet) · key from PBKDF2-HMAC-SHA256 (480k iterations) |
-| Validation 1 | TOTP RFC 6238 — Google Authenticator / Authy / any TOTP app |
-| Validation 2 | FIDO2/WebAuthn (YubiKey) · Windows Hello · email OTP fallback |
-| Recovery | 10 single-use SHA-256 backup codes, consumed on use |
-| Lockout | 3 attempts → 15 min lockout → recovery email OTP |
-| Tests | **34 passing** |
-
-### ✅ Schematic data model — `miguel_angel/core/models.py`
-
-18 Pydantic v2 models covering every concept in the schematic domain.
-
-```python
-from miguel_angel.core import (
-    Project, Sheet, Component, Pin, WireSegment, Net, NetLabel,
-    Point, Standard, ComponentCategory, LineType, MAprojIO
-)
-
-# Create a project
-io      = MAprojIO()
-project = MAprojIO.new_project("Motor Starter", author="R. Almeida")
-
-# Place a temperature controller
-tic = Component(
-    symbol_id="ISA51:TIC",
-    reference="TIC-101",
-    position=Point(x=10, y=5),
-    standard=Standard.ISA_5_1,
-    category=ComponentCategory.CONTROLLER,
-)
-project.sheets[0].components.append(tic)
-
-# Save
-io.save(project, Path("motor_starter.maproj"))
-```
-
-### ✅ Netlist engine — `miguel_angel/core/netlist.py`
-
-NetworkX graph with spatial pin matching, net label cross-sheet connectivity, and ERC.
-
-```python
-from miguel_angel.core import NetlistEngine
-
-engine = NetlistEngine()
-engine.build(project)
-
-engine.is_connected(pin_a.id, pin_b.id)    # → True / False
-engine.get_net_for_pin(pin_id)              # → "L1"
-violations = engine.run_erc()              # → [ERC-001, ERC-004...]
-netlist = engine.to_netlist_dict()         # → KiCad-compatible dict
-```
-
-ERC rules: `ERC-001` unconnected pin · `ERC-002` dead-end wire · `ERC-003` power short · `ERC-004` output conflict.
-
-### ✅ File I/O — `miguel_angel/core/fileio.py`
-
-`.maproj` is UTF-8 JSON, human-readable, git-diffable. Msgpack binary sidecar for large projects. Automatic `.bak` backup on every save.
-
-### ✅ Component library — `miguel_angel/db/`
-
-SQLite database with SQLAlchemy 2.0 ORM. 9 tables. 40 seed symbols. 11 line types.
-
-```python
-from miguel_angel.db import LibraryDB
-
-db = LibraryDB()
-db.connect()
-
-# Search
-results = db.search("temperature controller")
-# → [<Symbol ISA51:TIC: Temperature indicator controller>, ...]
-
-# Browse by standard
-symbols = db.get_symbols_by_standard("IEC 60617")
-
-# Get one symbol with all pins and keywords
-tic = db.get_symbol("ISA51:TIC")
-print(tic.isa_tag)          # → "TIC"
-print(tic.measured_variable) # → "T"
-for pin in tic.pins:
-    print(pin.name, pin.pin_type, pin.orientation)
-
-# Line types
-lts = db.get_line_types("ISA 5.1")
-# → Process connection (solid) · Pneumatic (dashed) · Electric (dotted) ...
-
-# Stats
-db.stats()
-# → {"ISA 5.1": 12, "IEC 60617": 6, "IEEE 315": 7, ...}
-```
+**Overall: 80% · 203 tests passing · 6,361 lines of production code · 5 ADRs · 49 files**
 
 ---
 
-## Getting started
+## .maproj file format
 
-### Prerequisites
+Human-readable JSON, git-diffable, version-controlled alongside your schematic:
 
-- Python 3.11 or higher
-- [Anaconda](https://www.anaconda.com/) (recommended)
-- Windows 10+, macOS 12+, or Ubuntu 22.04+
-- [Ollama](https://ollama.ai) (optional — for MiguelBot AI assistant)
-
-### Installation
-
-```bash
-# Clone
-git clone https://github.com/RiCrypto/miguel_angel.git
-cd miguel_angel
-
-# Create conda environment
-conda create -n miguel_angel python=3.11
-conda activate miguel_angel
-
-# Install
-pip install -r requirements.txt
-pip install -r requirements-auth.txt
-
-# Run all tests
-pytest tests/ -v
-# Expected: 122 passed
-```
-
-### Windows path note
-
-Working from the default project root:
-
-```
-C:\Users\ralmeida\Documents\Documentos\Minha Bibliteca\Scripts de Programas\Python\miguel_angel
-```
-
-Wrap in quotes in any terminal:
-
-```bash
-cd "C:\Users\ralmeida\...\miguel_angel"
+```json
+{
+  "version": "1",
+  "metadata": {
+    "name": "Motor Starter",
+    "author": "R. Almeida",
+    "standard": "IEC 60617",
+    "revision": "A"
+  },
+  "sheets": [{
+    "name": "Sheet 1",
+    "size": "A4",
+    "components": [{ "reference": "TIC-101", "symbol_id": "ISA51:TIC" }],
+    "wires": [{ "start": {"x": 14, "y": 5}, "end": {"x": 20, "y": 5} }],
+    "net_labels": [{ "net_name": "L1", "position": {"x": 14, "y": 5} }]
+  }],
+  "nets": [{ "name": "L1", "pin_ids": ["uuid-1", "uuid-2"] }]
+}
 ```
 
 ---
 
 ## Security
 
-All data stored locally in the OS app data directory:
+All data stored locally — nothing leaves your machine:
 
-| OS | Path |
-|----|------|
-| Windows | `%LOCALAPPDATA%\miguel_angel\` |
-| macOS | `~/Library/Application Support/miguel_angel/` |
-| Linux | `~/.local/share/miguel_angel/` |
-
-Two files are created on first launch: `profile.db` (encrypted user profile) and `library.db` (component library). Both are in `.gitignore` — never committed.
+| OS | Profile DB | Library DB | Vector Store |
+|----|-----------|-----------|-------------|
+| Windows | `%LOCALAPPDATA%\miguel_angel\` | same | `\miguel_angel\miguelbot_store\` |
+| macOS | `~/Library/Application Support/miguel_angel/` | same | same |
+| Linux | `~/.local/share/miguel_angel/` | same | same |
 
 See [docs/guides/security.md](docs/guides/security.md) for the full dual-factor setup guide.
-
----
-
-## .maproj file format
-
-```json
-{
-  "version": "1",
-  "metadata": {
-    "name": "Motor Starter Circuit",
-    "author": "R. Almeida",
-    "organisation": "Acme Engineering",
-    "standard": "IEC 60617",
-    "revision": "A",
-    "created_at": "2025-06-01T10:00:00Z",
-    "modified_at": "2025-06-24T15:30:00Z",
-    "miguel_angel_version": "0.1.0-dev"
-  },
-  "sheets": [
-    {
-      "id": "uuid",
-      "name": "Sheet 1 — Power circuit",
-      "size": "A4",
-      "components": [
-        {
-          "id": "uuid",
-          "symbol_id": "ISA51:TIC",
-          "reference": "TIC-101",
-          "position": {"x": 10, "y": 5},
-          "rotation": 0.0,
-          "standard": "ISA 5.1",
-          "category": "Controller"
-        }
-      ],
-      "wires": [
-        {"start": {"x": 14, "y": 5}, "end": {"x": 20, "y": 5}, "line_type": "Generic"}
-      ],
-      "net_labels": [
-        {"net_name": "L1", "position": {"x": 14, "y": 5}}
-      ]
-    }
-  ],
-  "nets": [
-    {"id": "uuid", "name": "L1", "pin_ids": ["pin-uuid-1", "pin-uuid-2"]}
-  ]
-}
-```
-
----
-
-## AI assistant — MiguelBot
-
-MiguelBot is embedded in the application as a dockable panel (press `F1`).
-
-- **Context-aware** — reads selected components and active nets from the canvas
-- **Offline-capable** — runs Llama 3 locally via Ollama, no API key required
-- **Standards-aware** — knows ISA 5.1 tags, IEC codes, ANSI designations
-- **ERC advisor** — explains electrical rule violations in plain language
-- **Forum bridge** — auto-posts to GitHub Discussions when it cannot answer
-
-The same RAG knowledge base (ChromaDB + nomic-embed-text) also powers **ForumBot**, which watches GitHub Discussions and responds within minutes.
 
 ---
 
@@ -349,13 +302,11 @@ The same RAG knowledge base (ChromaDB + nomic-embed-text) also powers **ForumBot
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| `ci.yml` | Push / PR | Test matrix: Python 3.11+3.12 × Win+Mac+Linux |
-| `forumbot_respond.yml` | New Discussion | RAG query → reply → label |
-| `forumbot_sync.yml` | Nightly 02:00 UTC | Sync resolved Q&A → ChromaDB |
+| `ci.yml` | Push / PR | Python 3.11+3.12 × Win+Mac+Linux |
+| `forumbot_respond.yml` | New Discussion | RAG → auto-reply → label |
+| `forumbot_sync.yml` | Nightly 02:00 UTC | Resolved Q&A → ChromaDB sync |
 
-ForumBot labels: `answered` · `needs-triage` · `confirmed-bug` · `upgrade-candidate` · `erc-issue` · `escalated` · `duplicate`
-
-Add `FORUMBOT_LLM_API_KEY` in **Settings → Secrets → Actions** to enable LLM-powered responses.
+Add `FORUMBOT_LLM_API_KEY` in **Settings → Secrets → Actions** to enable LLM responses.
 
 ---
 
@@ -363,9 +314,11 @@ Add `FORUMBOT_LLM_API_KEY` in **Settings → Secrets → Actions** to enable LLM
 
 | ADR | Decision | Status |
 |-----|----------|--------|
-| [ADR-001](docs/adr/ADR-001-tech-stack.md) | Technology stack — Python 3.11, PyQt6, SQLite, `.maproj` | ✅ Accepted |
-| [ADR-002](docs/adr/ADR-002-backend-review.md) | Backend Developer code review — all work approved | ✅ Accepted |
-| [ADR-003](docs/adr/ADR-003-db-review.md) | Database Specialist code review — all work approved | ✅ Accepted |
+| [ADR-001](docs/adr/ADR-001-tech-stack.md) | Technology stack | ✅ |
+| [ADR-002](docs/adr/ADR-002-backend-review.md) | Backend Developer review | ✅ |
+| [ADR-003](docs/adr/ADR-003-db-review.md) | Database Specialist review — 3 bugs fixed | ✅ |
+| [ADR-004](docs/adr/ADR-004-frontend-review.md) | Frontend Developer review — 2 bugs fixed | ✅ |
+| [ADR-005](docs/adr/ADR-005-rag-review.md) | Data Scientist review + double-check — 1 bug fixed | ✅ |
 
 ---
 
@@ -373,14 +326,11 @@ Add `FORUMBOT_LLM_API_KEY` in **Settings → Secrets → Actions** to enable LLM
 
 ```bash
 git checkout -b feat/your-feature
-git commit -m "feat: add ISA 5.1 temperature transmitter symbol"
+git commit -m "feat: add ISA 5.1 flow control valve symbol"
 git push origin feat/your-feature
-# → open pull request
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide and commit convention.
-
-**Questions?** Open a [GitHub Discussion](https://github.com/RiCrypto/miguel_angel/discussions) — ForumBot responds within minutes.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Questions? Open a [GitHub Discussion](https://github.com/RiCrypto/miguel_angel/discussions) — ForumBot responds within minutes.
 
 ---
 
@@ -388,15 +338,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide and commit convention.
 
 | # | Role | Responsibility |
 |---|------|----------------|
-| 10 | **Director** (Ricardo Almeida) | Final approval, change authority, version decisions |
-| 1 | Agent Scientist Computer | Technical lead · architecture · code review (ADR-001/002/003) |
-| 7 | Project Manager | Roadmap · sprint management · status reports |
-| 3 | Backend Developer | Core engine · data model · security · file I/O |
-| 4 | Frontend Developer | PyQt6 UI · canvas · menus · MiguelBot panel |
-| 5 | Database Specialist | SQLite schemas · component library (ISA/IEC/ANSI/IEEE) |
-| 2 | Data Scientist | RAG pipeline · auto-router (A\*) · BOM intelligence |
-| 6 | Cloud Specialist | CI/CD · GitHub Actions · ForumBot · packaging |
-| 8 | Marketing Specialist | Community · open-source outreach · launch |
+| 10 | **Director** (Ricardo Almeida) | Final approval · change authority |
+| 1 | Agent Scientist Computer | Technical lead · architecture · 5 code reviews |
+| 7 | Project Manager | Roadmap · 6 status reports |
+| 3 | Backend Developer | Security · data model · netlist · file I/O |
+| 5 | Database Specialist | Component library · ISA/IEC/ANSI/IEEE schemas |
+| 4 | Frontend Developer | PyQt6 UI · canvas · menus · panels |
+| 2 | Data Scientist | RAG pipeline · MiguelBot · ChromaDB |
+| 6 | Cloud Specialist | CI/CD · GitHub Actions · ForumBot |
+| 8 | Marketing Specialist | Community · open-source outreach |
 | 9 | Documentation Specialist | User guide · API reference · ADRs |
 
 ---
@@ -404,7 +354,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide and commit convention.
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
 Built with Python and PyQt6.
 AI assistant powered by [Ollama](https://ollama.ai) + [LangChain](https://langchain.com).
 Developed with assistance from [Anthropic Claude](https://anthropic.com).

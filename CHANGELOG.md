@@ -68,3 +68,46 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - `CHANGELOG.md` updated with Phase 2 DB deliverables
 - `README.md` v3 — updated with DB architecture, symbol counts, full project status
+
+### Added — Phase 3 (UI & Schematic Editor — Frontend Developer, reviewed & approved)
+- `miguel_angel/ui/constants.py` — theme tokens (21), Qt stylesheet (4,320 chars), app metadata
+- `miguel_angel/ui/menubar.py` — 8-menu bar: File · Edit · Workspace · Component library · Line types · View · Tools · Help
+  - 7 standard library sub-menus (ISA 5.1/5.2/5.4/95, IEC 60617, ANSI/NEMA, IEEE 315)
+  - 11 line type actions (6 ISA 5.1 signal + 5 IEC 60617 power)
+  - All actions as named public attributes for clean signal wiring
+- `miguel_angel/ui/toolbar.py` — vertical canvas tool palette (9 tools, exclusive group)
+- `miguel_angel/ui/canvas.py` — QGraphicsScene/View infinite canvas
+  - Zoom 5%–2000% · orthogonal wire routing · dot-grid · snap-to-grid
+  - 4 signals: selection_changed · project_loaded · erc_results_changed · coordinates_changed
+  - MiguelBot context snapshot (get_context_snapshot())
+- `miguel_angel/ui/panels.py` — 4 dockable panels
+  - ProjectNavigatorPanel · ComponentLibraryPanel · PropertiesPanel · MiguelBotPanel
+- `miguel_angel/ui/mainwindow.py` — MiguelAngelMainWindow orchestrator
+  - QSettings geometry persistence · unsaved-changes guard · status bar
+- `miguel_angel/__main__.py` — entry point with argparse CLI
+- `tests/test_ui.py` — 29 UI tests (headless, offscreen)
+- `docs/adr/ADR-004-frontend-review.md` — Frontend code review (Agent Scientist Computer)
+
+### Fixed (found during review)
+- `QActionGroup` import corrected from `QtWidgets` → `QtGui`
+- F-string escaped quote syntax error in `panels.py` MiguelBot chat initialisation
+
+### Added — Phase 3 (MiguelBot RAG pipeline — Data Scientist, reviewed & approved)
+- `miguel_angel/miguelbot/store.py` — ChromaDB persistent store (4 collections)
+  - docs · components · forum · erc_rules
+  - Cosine space · WAL-equivalent · telemetry disabled
+- `miguel_angel/miguelbot/embeddings.py` — Auto-detecting embedding engine
+  - Ollama nomic-embed-text (768-dim) → sentence-transformers (384-dim) → TF-IDF (128-dim)
+- `miguel_angel/miguelbot/ingest.py` — Ingestion pipeline
+  - Docs (MkDocs markdown) · Component library (SQLite) · Forum (GitHub Discussions) · ERC rules
+  - Deterministic SHA-256 IDs · delta ingestion · idempotent
+- `miguel_angel/miguelbot/rag.py` — RAG query engine
+  - RRF across 4 collections · confidence scoring · Ollama/cloud/fallback LLM
+  - Prompt builder with schematic context injection
+- `miguel_angel/miguelbot/service.py` — MiguelBotService public API
+- `tests/test_miguelbot.py` — 52 tests, all passing
+- `docs/adr/ADR-005-rag-review.md` — RAG + double-check review
+
+### Fixed (found during Agent Scientist Computer double-check)
+- `auth/profile.py` — `datetime.utcnow()` deprecated in Python 3.12; all 7 occurrences
+  replaced with `datetime.now(timezone.utc)`. All 34 auth tests still pass.

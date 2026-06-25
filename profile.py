@@ -21,7 +21,7 @@ import base64
 import secrets
 import hashlib
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -378,7 +378,7 @@ class ProfileDB:
         backup_code_hashes: list[str],
         fido2_credential: Optional[dict] = None,
     ):
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 INSERT INTO profile
@@ -416,12 +416,12 @@ class ProfileDB:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO login_attempts (username, attempted_at, success, reason) VALUES (?,?,?,?)",
-                (username, datetime.utcnow().isoformat(), int(success), reason)
+                (username, datetime.now(timezone.utc).isoformat(), int(success), reason)
             )
             conn.commit()
 
     def recent_failed_attempts(self, username: str, window_minutes: int = LOCKOUT_MINUTES) -> int:
-        since = (datetime.utcnow() - timedelta(minutes=window_minutes)).isoformat()
+        since = (datetime.now(timezone.utc) - timedelta(minutes=window_minutes)).isoformat()
         with sqlite3.connect(self.db_path) as conn:
             return conn.execute(
                 "SELECT COUNT(*) FROM login_attempts WHERE username=? AND success=0 AND attempted_at>?",
@@ -438,13 +438,13 @@ class ProfileDB:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "UPDATE profile SET backup_codes=?, updated_at=? WHERE username=?",
-                (json.dumps(codes), datetime.utcnow().isoformat(), username)
+                (json.dumps(codes), datetime.now(timezone.utc).isoformat(), username)
             )
             conn.commit()
 
     def create_session(self, username: str, ttl_hours: int = 8) -> str:
         session_id = secrets.token_hex(32)
-        now        = datetime.utcnow()
+        now        = datetime.now(timezone.utc)
         expires    = now + timedelta(hours=ttl_hours)
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
@@ -462,7 +462,7 @@ class ProfileDB:
         if not row:
             return False
         expires, active = row
-        return active == 1 and datetime.fromisoformat(expires) > datetime.utcnow()
+        return active == 1 and datetime.fromisoformat(expires).replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -562,7 +562,7 @@ class UserProfile:
             "password_hash": password_hash,
             "totp_secret":   self._pending_totp_secret,
             "recovery_email": (form_data.get("recovery_email") or "").strip(),
-            "created_at":    datetime.utcnow().isoformat(),
+            "created_at":    datetime.now(timezone.utc).isoformat(),
         }
 
         # Encrypt profile blob with AES-256 (key derived from password)
