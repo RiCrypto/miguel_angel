@@ -176,3 +176,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - GitHub Release with DMG + ZIP + .deb attached
   - CHANGELOG excerpt in release notes · prerelease detection
 - `docs/adr/ADR-008-packaging-review.md` — packaging double-check review · 0 bugs
+
+### Added — Phase 5 (Documentation Specialist, reviewed & approved · ADR-009)
+- `mkdocs.yml` — MkDocs Material theme configuration
+  - Dark/light toggle · JetBrains Mono · navigation.instant/tabs/sticky
+  - mkdocstrings (Python, Google docstring style) · Mermaid diagrams
+  - mike versioning · GitHub Pages deployment
+- `docs/index.md` — project home page with feature cards and status table
+- Getting started guides:
+  - `docs/guides/installation.md` — Win/Mac/Linux tabs · conda · Ollama setup
+  - `docs/guides/quickstart.md` — 7-step walkthrough (register → place → wire → ERC)
+  - `docs/guides/first-schematic.md` — complete motor starter circuit tutorial
+- User guides:
+  - `docs/guides/canvas.md` — navigation · grid · snap · symbol placement
+  - `docs/guides/standards.md` — all 40 symbols × 7 standards reference table
+  - `docs/guides/wires-nets.md` — wire drawing · net labels · junctions · ERC
+  - `docs/guides/miguelbot.md` — RAG pipeline · embedding backends · offline mode
+  - `docs/guides/export.md` — DXF/PDF/SVG/KiCad with code examples
+  - `docs/guides/shortcuts.md` — complete keyboard shortcut reference
+- API reference (6 modules):
+  - `docs/api/core.md` — all 11 public types with examples
+  - `docs/api/db.md` — LibraryDB methods + ORM field tables
+  - `docs/api/miguelbot.md` — MiguelBotService + RAGEngine + EmbeddingEngine
+  - `docs/api/export.md` — 4 exporters + coordinate helpers
+  - `docs/api/auth.md` · `docs/api/ui.md` · `docs/api/index.md`
+- ADR index: `docs/adr/index.md` — all 8 ADRs, bug count, template
+- `docs/contributing.md` — fork · test · commit convention · ruff · mkdocs serve
+- `.github/workflows/docs.yml` — auto-deploy to GitHub Pages on docs/ changes
+- `docs/assets/logo.svg` — "ma" purple square logo
+- `docs/adr/ADR-009-docs-review.md` — Documentation review · 1 fix · 0 bugs
