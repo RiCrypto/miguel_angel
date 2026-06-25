@@ -151,3 +151,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `tests/test_ui.py` — 19 new tests (SymbolItem, PinItem, canvas API, MiguelBot wiring)
   - 268 passed, 3 skipped (headless CI canvas grid render limitation — documented)
 - `docs/adr/ADR-007-symbol-miguelbot-review.md` — double-check review · 0 bugs found
+
+### Added — Phase 4 completion (Cloud Specialist, reviewed & approved · ADR-008)
+- `packaging/miguel_angel.spec` — PyInstaller cross-platform build spec
+  - Single spec for Windows/.exe, macOS/.app, Linux/binary
+  - 29 hidden imports · heavy ML stack excluded · docs bundled
+  - macOS Info.plist: .maproj file association · Retina/dark mode
+  - Environment vars: MA_VERSION · MA_ONE_FILE · MA_CONSOLE
+- `packaging/hooks/hook-chromadb.py` — collect_submodules + collect_data_files
+- `packaging/hooks/hook-ezdxf.py` — collect_submodules + collect_data_files
+- `packaging/scripts/build_deb.sh` — Linux .deb packaging
+  - FHS-compliant layout · MIME type registration · .desktop file
+  - postinst: update-mime-database · update-desktop-database
+  - Depends: libxcb-cursor0 (critical PyQt6 runtime dep)
+- `packaging/scripts/notarise_mac.sh` — macOS signing + notarisation
+  - Graceful skip when Apple credentials absent
+  - codesign · spctl · xcrun notarytool · xcrun stapler
+- `packaging/scripts/entitlements.plist` — macOS Gatekeeper entitlements
+- `packaging/BUILD.md` — developer guide for all three platforms
+- `.github/workflows/release.yml` — GitHub Actions release pipeline
+  - Trigger: `git tag v*.*.*` · workflow_dispatch manual trigger
+  - 5 jobs: prepare · build-windows · build-macos · build-linux · publish-release
+  - PyInstaller 6.10.0 pinned · smoke tests on each platform
+  - GitHub Release with DMG + ZIP + .deb attached
+  - CHANGELOG excerpt in release notes · prerelease detection
+- `docs/adr/ADR-008-packaging-review.md` — packaging double-check review · 0 bugs
