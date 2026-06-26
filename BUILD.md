@@ -12,15 +12,21 @@ as a standalone desktop application.
 pip install pyinstaller==6.10.0
 
 # 2. Build for your current platform
+#    ⚠️  IMPORTANT: always run from the PROJECT ROOT (not from packaging/)
+cd miguel_angel-main               # or wherever the project root is
 pyinstaller packaging/miguel_angel.spec --clean --noconfirm
 
 # 3. Find your output in:
-#   Windows  →  dist/miguel_angel/miguel_angel.exe
+#   Windows  →  dist\miguel_angel\miguel_angel.exe
 #   macOS    →  dist/miguel_angel.app
 #   Linux    →  dist/miguel_angel/miguel_angel
 ```
 
 > **Note:** PyInstaller does NOT cross-compile. Run on each platform to get that platform's binary.
+>
+> **⚠️ Must run from the project root.** The spec uses `SPECPATH` (the directory
+> containing the .spec file) to locate `miguel_angel/__main__.py` and all data files.
+> Running `cd packaging && pyinstaller miguel_angel.spec` will fail.
 
 ---
 

@@ -32,11 +32,23 @@ from pathlib import Path
 ONE_FILE     = os.environ.get("MA_ONE_FILE", "0") == "1"
 SHOW_CONSOLE = os.environ.get("MA_CONSOLE",  "0") == "1"
 VERSION      = os.environ.get("MA_VERSION",  "0.1.0")
-ICON_WIN     = "packaging/icons/miguel_angel.ico"
-ICON_MAC     = "packaging/icons/miguel_angel.icns"
-ICON_LIN     = "packaging/icons/miguel_angel.png"
 
-ROOT = Path(".").resolve()
+# SPECPATH is set by PyInstaller to the directory containing the .spec file.
+# Since the spec lives in packaging/, the project root is one level up.
+# We use os.path.abspath to handle Windows paths with spaces correctly.
+import os as _os
+ROOT    = Path(_os.path.abspath(_os.path.join(SPECPATH, "..")))
+PKG_DIR = ROOT / "packaging"
+
+# Diagnostic print — shows in PyInstaller output to confirm paths
+print(f"[spec] SPECPATH = {SPECPATH}")
+print(f"[spec] ROOT     = {ROOT}")
+print(f"[spec] Entry    = {ROOT / 'miguel_angel' / '__main__.py'}")
+print(f"[spec] Exists   = {(ROOT / 'miguel_angel' / '__main__.py').exists()}")
+
+ICON_WIN = str(PKG_DIR / "icons" / "miguel_angel.ico")
+ICON_MAC = str(PKG_DIR / "icons" / "miguel_angel.icns")
+ICON_LIN = str(PKG_DIR / "icons" / "miguel_angel.png")
 
 # ── Hidden imports ────────────────────────────────────────────────────────────
 # Packages imported dynamically or via string that PyInstaller can't trace
@@ -118,26 +130,26 @@ EXCLUDES = [
 # ── Data files ────────────────────────────────────────────────────────────────
 # (source_pattern, destination_in_bundle)
 DATAS = [
-    ("docs/",          "docs"),            # MiguelBot ingests docs at startup
-    ("README.md",      "."),
-    ("LICENSE",        "."),
-    ("CHANGELOG.md",   "."),
+    (str(ROOT / "docs"),        "docs"),   # MiguelBot ingests docs at startup
+    (str(ROOT / "README.md"),   "."),
+    (str(ROOT / "LICENSE"),     "."),
+    (str(ROOT / "CHANGELOG.md"),"."),
 ]
 
-# Add Alembic migrations
-DATAS.append(("miguel_angel/db/migrations/", "miguel_angel/db/migrations"))
+# Add Alembic migrations (absolute path)
+DATAS.append((str(ROOT / "miguel_angel" / "db" / "migrations"),
+              "miguel_angel/db/migrations"))
 
-# Add packaging metadata
-DATAS.append(("packaging/", "packaging"))
+# Packaging metadata not needed inside the bundle — removed
 
 # ── Analysis ──────────────────────────────────────────────────────────────────
 a = Analysis(
-    ["miguel_angel/__main__.py"],
-    pathex=[str(ROOT)],
+    [str(ROOT / "run.py")],           # top-level launcher — avoids path/SPECPATH issues
+    pathex=[str(ROOT)],   # project root on sys.path for imports
     binaries=[],
     datas=DATAS,
     hiddenimports=HIDDEN_IMPORTS,
-    hookspath=["packaging/hooks"],
+    hookspath=[str(PKG_DIR / "hooks")],
     hooksconfig={},
     runtime_hooks=[],
     excludes=EXCLUDES,
@@ -177,7 +189,7 @@ if ONE_FILE:
         target_arch=None,
         codesign_identity=None,
         entitlements_file=None,
-        icon=icon if Path(icon).exists() else None,
+        icon=icon if icon and Path(icon).exists() else None,
         version_info=dict(
             FileVersion=VERSION,
             ProductVersion=VERSION,
@@ -205,7 +217,7 @@ else:
         target_arch=None,
         codesign_identity=None,
         entitlements_file=None,
-        icon=icon if Path(icon).exists() else None,
+        icon=icon if icon and Path(icon).exists() else None,
     )
 
     coll = COLLECT(

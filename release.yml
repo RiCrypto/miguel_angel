@@ -76,7 +76,7 @@ jobs:
         shell: cmd
         run: |
           set MA_VERSION=${{ env.MA_VERSION }}
-          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist --workpath build
 
       - name: Verify executable exists
         shell: powershell
@@ -136,7 +136,7 @@ jobs:
         env:
           MA_VERSION: ${{ env.MA_VERSION }}
         run: |
-          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist --workpath build
 
       - name: Verify .app bundle
         run: |
@@ -221,7 +221,7 @@ jobs:
           MA_VERSION: ${{ env.MA_VERSION }}
           QT_QPA_PLATFORM: offscreen
         run: |
-          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist
+          pyinstaller packaging/miguel_angel.spec --clean --noconfirm --distpath dist --workpath build
 
       - name: Verify Linux binary
         run: |
